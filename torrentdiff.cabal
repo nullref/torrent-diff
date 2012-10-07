@@ -1,0 +1,21 @@
+Cabal-Version: >= 1.2
+Build-Type: Simple
+Name: torrent-diff
+Version: 1.0.0
+Synopsis: Torrent Differ
+Description:
+  Displays path differences between two torrent files.
+License: OtherLicense
+License-File: COPYING
+Author: Philip Nilsson <pnilsson@nullref.se>
+Maintainer: Philip Nilsson <pnilsson@nullref.se>
+
+Executable torrent-diff
+  GHC-Options: -Wall
+  Main-Is: TorrentDiff.hs
+  Build-Depends:
+    base,
+    bytestring,
+    containers,
+    bencode,
+    system-filepath
