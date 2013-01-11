@@ -99,7 +99,7 @@ options =
     (NoArg (\ opt -> opt { optMode = ModeDiff }))
     "show a diff"
   , Option ['d'] []
-    (NoArg (\ opt -> opt { optMkSet = mkSetFiles }))
+    (NoArg (\ opt -> opt { optMkSet = mkSetDirectories }))
     "operate on directories (default)"
   , Option ['f'] []
     (NoArg (\ opt -> opt { optMkSet = mkSetFiles }))
