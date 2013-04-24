@@ -122,15 +122,20 @@ getFiles be = fromMaybe [] $ do
       return path)
     files
 
-torrentDirs :: ([FilePath] -> Set FilePath) -> String -> IO (Set FilePath)
-torrentDirs mkSet path = do
+torrentFiles :: String -> IO [FilePath]
+torrentFiles path = do
   bytes <- BL.readFile path
   -- TODO: Catch exceptions.
   case bRead bytes of
     Nothing -> error $ errorString "couldn't parse bencoded data"
     Just be -> do
       let files = getFiles be
-      return $ mkSet files
+      return files
+
+pathFiles :: ([FilePath] -> Set FilePath) -> String -> IO (Set FilePath)
+pathFiles mkSet path = do
+  files <- torrentFiles path
+  return $ mkSet files
 
 mkSetFiles :: [FilePath] -> Set FilePath
 mkSetFiles fps = Set.fromList fps
@@ -153,8 +158,8 @@ main = do
     (optargs, [oldTorrent, newTorrent], []) -> do
       let opts = foldl (flip id) defOptions optargs
 
-      oldDirs <- torrentDirs (optMkSet opts) oldTorrent
-      newDirs <- torrentDirs (optMkSet opts) newTorrent
+      oldDirs <- pathFiles (optMkSet opts) oldTorrent
+      newDirs <- pathFiles (optMkSet opts) newTorrent
 
       let removed   = Set.difference oldDirs newDirs
           added     = Set.difference newDirs oldDirs
