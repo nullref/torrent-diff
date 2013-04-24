@@ -60,6 +60,7 @@ import qualified Filesystem.Path.CurrentOS as
   Path
   ( concat
   , decode
+  , decodeString
   , directory
   , encodeString
   )
@@ -122,9 +123,9 @@ getFiles be = fromMaybe [] $ do
       return path)
     files
 
-torrentFiles :: String -> IO [FilePath]
+torrentFiles :: FilePath -> IO [FilePath]
 torrentFiles path = do
-  bytes <- BL.readFile path
+  bytes <- BL.readFile (Path.encodeString path)
   -- TODO: Catch exceptions.
   case bRead bytes of
     Nothing -> error $ errorString "couldn't parse bencoded data"
@@ -132,7 +133,7 @@ torrentFiles path = do
       let files = getFiles be
       return files
 
-pathFiles :: ([FilePath] -> Set FilePath) -> String -> IO (Set FilePath)
+pathFiles :: ([FilePath] -> Set FilePath) -> FilePath -> IO (Set FilePath)
 pathFiles mkSet path = do
   files <- torrentFiles path
   return $ mkSet files
@@ -158,8 +159,8 @@ main = do
     (optargs, [oldTorrent, newTorrent], []) -> do
       let opts = foldl (flip id) defOptions optargs
 
-      oldDirs <- pathFiles (optMkSet opts) oldTorrent
-      newDirs <- pathFiles (optMkSet opts) newTorrent
+      oldDirs <- pathFiles (optMkSet opts) (Path.decodeString oldTorrent)
+      newDirs <- pathFiles (optMkSet opts) (Path.decodeString newTorrent)
 
       let removed   = Set.difference oldDirs newDirs
           added     = Set.difference newDirs oldDirs
