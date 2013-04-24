@@ -9,6 +9,9 @@ import Data.Set (Set)
 import Filesystem.Path (FilePath)
 
 -- Normal
+import ConcatMapM
+  ( concatMapM
+  )
 import Data.BEncode
   ( BEncode (..)
   , bRead
@@ -17,6 +20,9 @@ import Data.Maybe
   ( fromMaybe
   , mapMaybe
   )
+import Data.Monoid
+  ( (<>)
+  )
 import System.Console.GetOpt
   ( ArgDescr(NoArg)
   , ArgOrder(Permute)
@@ -24,12 +30,19 @@ import System.Console.GetOpt
   , getOpt
   , usageInfo
   )
+import System.Directory
+  ( getDirectoryContents
+  )
 import System.Environment
   ( getArgs
   )
 import System.Exit
   ( exitFailure
   , exitSuccess
+  )
+import System.Posix.Files
+  ( isDirectory
+  , getFileStatus
   )
 
 -- Qualified
@@ -63,6 +76,7 @@ import qualified Filesystem.Path.CurrentOS as
   , decodeString
   , directory
   , encodeString
+  , stripPrefix
   )
 
 progName :: String
@@ -133,9 +147,34 @@ torrentFiles path = do
       let files = getFiles be
       return files
 
+getDirectoryContentsFP :: FilePath -> IO [FilePath]
+getDirectoryContentsFP filePath = map Path.decodeString `fmap` getDirectoryContents (Path.encodeString filePath)
+
+isDirectoryFP :: FilePath -> IO Bool
+isDirectoryFP filePath = isDirectory `fmap` getFileStatus (Path.encodeString filePath)
+
+-- XXX: POSIX-specific.
+isSpecialFP :: FilePath -> Bool
+isSpecialFP filePath = filePath `elem` (map Path.decodeString [".", ".."])
+
+dirFiles :: FilePath -> IO [FilePath]
+dirFiles unfixedPath =
+  let fixedPath = unfixedPath <> Path.decodeString ""
+  in mapMaybe (Path.stripPrefix fixedPath) `fmap` dirFiles' fixedPath
+  where
+  dirFiles' path = do
+    files <- filter (not . isSpecialFP) `fmap` getDirectoryContentsFP path
+    concatMapM (\ file -> do
+      let filePath = path <> file
+      isDir <- isDirectoryFP filePath
+      if isDir
+        then dirFiles' filePath
+        else return [filePath]) files
+
 pathFiles :: ([FilePath] -> Set FilePath) -> FilePath -> IO (Set FilePath)
-pathFiles mkSet path = do
-  files <- torrentFiles path
+pathFiles mkSet filePath = do
+  isDir <- isDirectoryFP filePath
+  files <- if isDir then dirFiles filePath else torrentFiles filePath
   return $ mkSet files
 
 mkSetFiles :: [FilePath] -> Set FilePath

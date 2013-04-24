@@ -15,7 +15,9 @@ Executable torrent-diff
   Main-Is: TorrentDiff.hs
   Build-Depends:
     base,
+    bencode,
     bytestring,
     containers,
-    bencode,
-    system-filepath
+    directory,
+    system-filepath >= 0.4.1,
+    unix
