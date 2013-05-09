@@ -20,7 +20,7 @@ Executable torrent-diff
   Build-Depends:
     attoparsec,
     AttoBencode,
-    base,
+    base >= 4.6 && < 5,
     bytestring,
     containers >= 0.5,
     directory,
