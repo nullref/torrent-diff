@@ -17,7 +17,7 @@ Executable torrent-diff
     base,
     bencode,
     bytestring,
-    containers,
+    containers >= 0.5,
     directory,
     system-filepath >= 0.4.1,
     unix

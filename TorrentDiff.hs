@@ -4,7 +4,6 @@ module Main (main) where
 import Prelude hiding (FilePath)
 
 -- Types
-import Data.Map (Map)
 import Data.Set (Set)
 import Filesystem.Path (FilePath)
 
@@ -57,7 +56,7 @@ import qualified Data.ByteString.Lazy as
   )
 import qualified Data.Map as
   Map
-  ( fromDistinctAscList
+  ( fromSet
   , lookup
   , toList
   , union
@@ -183,12 +182,6 @@ mkSetFiles fps = Set.fromList fps
 mkSetDirectories :: [FilePath] -> Set FilePath
 mkSetDirectories fps = Set.fromList $ map Path.directory fps
 
--- TODO: Remove this when containers-0.5 is used.
--- | Constructs a Map from a Set using the function to generate values
---   from the keys.
-fromSet :: (k -> v) -> Set k -> Map k v
-fromSet f s = Map.fromDistinctAscList $ map (\ k -> (k, f k)) $ Set.toList s
-
 main :: IO ()
 main = do
   args <- getArgs
@@ -204,8 +197,8 @@ main = do
       let removed   = Set.difference oldDirs newDirs
           added     = Set.difference newDirs oldDirs
           unchanged = Set.intersection oldDirs newDirs
-          changed   = Map.union (fromSet (const "-") removed) (fromSet (const "+") added)
-          diff      = Map.union changed (fromSet (const " ") unchanged)
+          changed   = Map.union (Map.fromSet (const "-") removed) (Map.fromSet (const "+") added)
+          diff      = Map.union changed (Map.fromSet (const " ") unchanged)
 
       case (optMode opts) of
         ModeAdded -> do
