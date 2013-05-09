@@ -147,9 +147,7 @@ torrentFiles path = do
   -- TODO: Catch exceptions.
   case maybeResult $ parse bValue bytes of
     Nothing -> error $ errorString "couldn't parse bencoded data"
-    Just be -> do
-      let files = getFiles be
-      return files
+    Just be -> return $ getFiles be
 
 getDirectoryContentsFP :: FilePath -> IO [FilePath]
 getDirectoryContentsFP filePath = map Path.decodeString `fmap` getDirectoryContents (Path.encodeString filePath)
