@@ -18,8 +18,9 @@ Executable torrent-diff
   GHC-Options: -Wall
   Main-Is: TorrentDiff.hs
   Build-Depends:
+    attoparsec,
+    AttoBencode,
     base,
-    bencode,
     bytestring,
     containers >= 0.5,
     directory,

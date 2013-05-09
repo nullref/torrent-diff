@@ -11,9 +11,15 @@ import Filesystem.Path (FilePath)
 import ConcatMapM
   ( concatMapM
   )
-import Data.BEncode
-  ( BEncode (..)
-  , bRead
+import Data.AttoBencode
+  ( BValue(..)
+  )
+import Data.AttoBencode.Parser
+  ( bValue
+  )
+import Data.Attoparsec
+  ( maybeResult
+  , parse
   )
 import Data.Maybe
   ( fromMaybe
@@ -45,14 +51,13 @@ import System.Posix.Files
   )
 
 -- Qualified
+import qualified Data.ByteString.Char8 as
+  B
+  ( pack
+  )
 import qualified Data.ByteString as
   B
-  ( concat
-  )
-import qualified Data.ByteString.Lazy as
-  BL
   ( readFile
-  , toChunks
   )
 import qualified Data.Map as
   Map
@@ -120,27 +125,27 @@ options =
     "operate on files instead of directories"
   ]
 
--- | Extracts a list of file paths from a torrent file parsed into a BEncode
+-- | Extracts a list of file paths from a torrent file parsed into a BValue
 --   structure.
-getFiles :: BEncode -> [FilePath]
+getFiles :: BValue -> [FilePath]
 getFiles be = fromMaybe [] $ do
   (BDict torrent) <- return be
-  (BDict info) <- Map.lookup "info" torrent
-  (BList files) <- Map.lookup "files" info
+  (BDict info) <- Map.lookup (B.pack "info") torrent
+  (BList files) <- Map.lookup (B.pack "files") info
   return $ mapMaybe
     (\ (BDict file) -> do
-      (BList segments) <- Map.lookup "path" file
+      (BList segments) <- Map.lookup (B.pack "path") file
       let path = Path.concat $ mapMaybe
-                   (\ (BString bs) -> return $ Path.decode $ B.concat $ BL.toChunks bs)
+                   (\ (BString bs) -> return $ Path.decode bs)
                    segments
       return path)
     files
 
 torrentFiles :: FilePath -> IO [FilePath]
 torrentFiles path = do
-  bytes <- BL.readFile (Path.encodeString path)
+  bytes <- B.readFile (Path.encodeString path)
   -- TODO: Catch exceptions.
-  case bRead bytes of
+  case maybeResult $ parse bValue bytes of
     Nothing -> error $ errorString "couldn't parse bencoded data"
     Just be -> do
       let files = getFiles be
