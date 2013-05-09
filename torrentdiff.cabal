@@ -1,4 +1,4 @@
-Cabal-Version: >= 1.2
+Cabal-Version: >= 1.6
 Build-Type: Simple
 Name: torrent-diff
 Version: 1.0.0
@@ -9,6 +9,10 @@ License: OtherLicense
 License-File: COPYING
 Author: Philip Nilsson <pnilsson@nullref.se>
 Maintainer: Philip Nilsson <pnilsson@nullref.se>
+
+Source-Repository head
+  Type: git
+  Location: git://github.com/nullref/torrent-diff.git
 
 Executable torrent-diff
   GHC-Options: -Wall
