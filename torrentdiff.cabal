@@ -5,6 +5,7 @@ Version: 1.0.0
 Synopsis: Torrent Differ
 Description:
   Displays path differences between two torrent files.
+Category: Data
 License: OtherLicense
 License-File: COPYING
 Author: Philip Nilsson <pnilsson@nullref.se>
